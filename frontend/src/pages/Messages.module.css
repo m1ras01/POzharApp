@@ -1,0 +1,206 @@
+.page {
+  max-width: 720px;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.hint {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.list li:last-child {
+  border-bottom: none;
+}
+
+.list li:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.list li.selected {
+  background: rgba(30, 58, 95, 0.08);
+}
+
+.unread {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.sender,
+.recipient {
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.workObject {
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.attachmentLabel {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.attachmentImage {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.attachmentLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.downloadLink {
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.downloadLink:hover {
+  text-decoration: underline;
+}
+
+.subject {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}
+
+.date {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.detail {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.detail h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.meta {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.body {
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.close {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.loading,
+.empty {
+  color: var(--muted);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.35rem;
+  }
+
+  .list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .sender,
+  .recipient {
+    min-width: 0;
+  }
+
+  .detail {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .list li {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .detail {
+    padding: 0.75rem 1rem;
+  }
+
+  .body {
+    font-size: 0.95rem;
+  }
+}

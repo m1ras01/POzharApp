@@ -1,0 +1,80 @@
+// FireNotify System — схема БД
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              String   @id @default(cuid())
+  login           String   @unique
+  passwordHash    String   @map("password_hash")
+  name            String?
+  role            String   @default("OPERATOR") // ADMIN, OPERATOR, OBSERVER
+  telegramId      String?  @unique @map("telegram_id")
+  telegramCode    String?  @map("telegram_code")
+  telegramEnabled Boolean @default(false) @map("telegram_enabled")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt     @map("updated_at")
+
+  messagesSent     Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+  actionLogs        ActionLog[]
+  assignedNotifications Notification[] @relation("AssignedTo")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  source      String   // источник сигнала
+  address     String   // адрес объекта
+  department  String?  // отделение
+  status      String   @default("NEW") // NEW, IN_PROGRESS, VERIFIED, FALSE_ALARM, CLOSED
+  description String?
+  comments    String?
+  assignedToId String?           @map("assigned_to_id")
+  assignedTo   User?             @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt     @map("updated_at")
+  closedAt    DateTime?          @map("closed_at")
+
+  deliveries DeliveryLog[]
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  senderId       String   @map("sender_id")
+  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId    String?  @map("recipient_id")
+  recipient      User?    @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  workObject     String?  @map("work_object") // объект для выполнения работ
+  subject        String?
+  body           String
+  attachmentUrl  String?  @map("attachment_url")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+}
+
+model DeliveryLog {
+  id             String   @id @default(cuid())
+  notificationId String   @map("notification_id")
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  channel        String   // TELEGRAM
+  recipient      String?
+  success        Boolean
+  details        String?
+  createdAt      DateTime @default(now()) @map("created_at")
+}
+
+model ActionLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  entity    String?  // notification, user, message, ...
+  entityId  String?  @map("entity_id")
+  details   String?
+  createdAt DateTime @default(now()) @map("created_at")
+}

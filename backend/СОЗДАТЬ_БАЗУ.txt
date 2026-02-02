@@ -1,0 +1,24 @@
+Проект переведён на SQLite — PostgreSQL не нужен.
+
+--- Запуск (оба сразу) ---
+
+Из КОРНЯ проекта (папка POzharApp):
+
+  npm install
+  npm run dev
+
+Или дважды кликните start.bat в корне — запустятся и backend, и frontend в одном окне.
+
+Откройте в браузере: http://localhost:5173
+
+--- Только backend вручную ---
+
+  cd backend
+  npm run dev
+
+--- Вход ---
+
+  логин: admin
+  пароль: admin123
+
+Файл базы: backend/prisma/dev.db

@@ -1,0 +1,17 @@
+{
+  "name": "firenotify",
+  "private": true,
+  "description": "FireNotify System — запуск backend + frontend",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:deploy": "npm run build:frontend && npm run copy:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "copy:frontend": "node scripts/copy-frontend.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

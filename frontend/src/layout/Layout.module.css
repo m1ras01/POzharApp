@@ -1,0 +1,220 @@
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand {
+  padding: 1.25rem 1.25rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.brand .logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.nav {
+  flex: 1;
+  padding: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+}
+
+.nav a {
+  padding: 0.65rem 1.25rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  font-size: 0.95rem;
+  border-left: 3px solid transparent;
+}
+
+.nav a:hover {
+  background: var(--bg);
+  text-decoration: none;
+  color: var(--accent);
+}
+
+.nav a.active {
+  background: rgba(30, 58, 95, 0.08);
+  color: var(--accent);
+  font-weight: 500;
+  border-left-color: var(--accent);
+}
+
+.user {
+  padding: 1.25rem 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.role {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.logout {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.logout:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem;
+  overflow: auto;
+  background: var(--bg);
+}
+
+/* Кнопка меню (видна только на мобильных) */
+.menuToggle {
+  display: none;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 90;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.menuToggleBar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 95;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.overlay.overlayOpen {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.sidebarClose {
+  display: none;
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.sidebarClose:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* Мобильная адаптация */
+@media (max-width: 768px) {
+  .menuToggle {
+    display: flex;
+  }
+
+  .overlay {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    min-width: 0;
+    max-width: 85vw;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-out;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .brand {
+    padding-right: 0.5rem;
+  }
+
+  .sidebarClose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .main {
+    padding: 1rem;
+    padding-top: 3.5rem;
+  }
+}
