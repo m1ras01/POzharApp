@@ -57,29 +57,44 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
     res.status(400).json({ error: 'Укажите логин и пароль' });
     return;
   }
-  const existing = await prisma.user.findUnique({ where: { login: String(login).trim() } });
+  const loginTrim = String(login).trim();
+  if (password.length < 6) {
+    res.status(400).json({ error: 'Пароль не короче 6 символов' });
+    return;
+  }
+  const existing = await prisma.user.findUnique({ where: { login: loginTrim } });
   if (existing) {
     res.status(400).json({ error: 'Пользователь с таким логином уже существует' });
     return;
   }
-  const hash = await bcrypt.hash(password, 10);
-  const u = await prisma.user.create({
-    data: {
-      login: String(login).trim(),
-      passwordHash: hash,
-      name: name ? String(name) : null,
-      role: (role as string) ?? 'OPERATOR',
-    },
-    select: {
-      id: true,
-      login: true,
-      name: true,
-      role: true,
-      createdAt: true,
-    },
-  });
-  await logAction(curUser.id, 'CREATE_USER', 'user', u.id);
-  res.status(201).json(u);
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const u = await prisma.user.create({
+      data: {
+        login: loginTrim,
+        passwordHash: hash,
+        name: name ? String(name).trim() || null : null,
+        role: (role === 'ADMIN' || role === 'OBSERVER') ? role : 'OPERATOR',
+      },
+      select: {
+        id: true,
+        login: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    await logAction(curUser.id, 'CREATE_USER', 'user', u.id);
+    res.status(201).json(u);
+  } catch (e: any) {
+    const code = e?.code;
+    if (code === 'P2002') {
+      res.status(400).json({ error: 'Пользователь с таким логином уже существует' });
+      return;
+    }
+    console.error('Create user error:', e);
+    res.status(500).json({ error: e?.message || 'Ошибка создания пользователя' });
+  }
 });
 
 router.patch('/:id', requireRole('ADMIN'), async (req, res) => {

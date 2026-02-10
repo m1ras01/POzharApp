@@ -60,7 +60,8 @@ export default function Questionnaires() {
       setAnswers({});
       setWorkObject('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка отправки');
+      const msg = err instanceof Error ? err.message : 'Ошибка отправки';
+      setError(msg === 'Failed to fetch' ? 'Сервер недоступен. Запустите backend.' : msg);
     } finally {
       setLoading(false);
     }

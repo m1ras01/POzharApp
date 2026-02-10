@@ -34,6 +34,18 @@ if not exist "node_modules" (
   echo.
 )
 
+echo Синхронизация базы данных и Prisma...
+cd backend
+echo [1/2] prisma db push...
+call npx prisma db push
+if errorlevel 1 (
+  echo ВНИМАНИЕ: db push не удался. Запустите "ИСПРАВИТЬ_БАЗУ_ОДИН_РАЗ.bat" от имени администратора или проверьте папку backend.
+)
+echo [2/2] prisma generate...
+call npx prisma generate
+cd ..
+echo.
+
 echo Запускаю backend и frontend...
 echo.
 echo   Сайт:    http://localhost:5173

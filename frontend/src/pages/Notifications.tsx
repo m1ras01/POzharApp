@@ -84,7 +84,8 @@ export default function Notifications() {
       setCreateDescription('');
       load();
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'Ошибка создания');
+      const msg = err instanceof Error ? err.message : 'Ошибка создания';
+      setCreateError(msg === 'Failed to fetch' ? 'Сервер недоступен. Запустите backend.' : msg);
     } finally {
       setCreating(false);
     }

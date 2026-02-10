@@ -44,6 +44,18 @@ export default function Settings() {
   };
 
   const [telegramCode, setTelegramCode] = useState<{ code: string; botUsername: string | null; instruction: string } | null>(null);
+  const [botInfo, setBotInfo] = useState<{ botLink: string | null; botUsername: string | null } | null>(null);
+
+  useEffect(() => {
+    apiFetch('/api/settings/telegram/bot-info')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.botLink || data?.botUsername) {
+          setBotInfo({ botLink: data.botLink ?? null, botUsername: data.botUsername ?? null });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const requestTelegramCode = async () => {
     try {
@@ -85,9 +97,19 @@ export default function Settings() {
           </label>
           <p className={styles.hint}>
             {settings.telegramId
-              ? 'Аккаунт привязан. Уведомления о новых пожарных сигналах будут приходить в Telegram.'
-              : 'Запросите код и отправьте его боту — аккаунт привяжется к вашему Telegram.'}
+              ? 'Аккаунт привязан. Уведомления о новых пожарных сигналах и ответы на заявки будут приходить в Telegram.'
+              : 'Откройте бота в Telegram, затем запросите код и отправьте ему команду /start КОД — аккаунт привяжется.'}
           </p>
+          {botInfo?.botLink && (
+            <a
+              href={botInfo.botLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.botLink}
+            >
+              Открыть бота в Telegram {botInfo.botUsername && `(${botInfo.botUsername})`}
+            </a>
+          )}
           {settings.telegramId ? (
             <button
               type="button"

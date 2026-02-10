@@ -25,12 +25,21 @@ export default function Reports() {
   };
   const [data, setData] = useState<ReportsPageData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const load = () => {
+    setError('');
     setLoading(true);
     const params = new URLSearchParams({ from, to });
     apiFetch(`/api/reports?${params}`)
-      .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          setError(data.error ?? 'Ошибка загрузки отчёта');
+          return null;
+        }
+        return data as ReportsPageData | null;
+      })
       .then((data: ReportsPageData | null) => {
         if (data && typeof data.total === 'number' && Array.isArray(data.notifications)) {
           setData(data);
@@ -38,7 +47,10 @@ export default function Reports() {
           setData(null);
         }
       })
-      .catch(() => setData(null))
+      .catch(() => {
+        setData(null);
+        setError('Сервер недоступен. Запустите backend.');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -78,6 +90,7 @@ export default function Reports() {
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>Отчёты</h1>
+      {error && <p className={styles.error}>{error}</p>}
       <form onSubmit={handleGenerate} className={styles.form}>
         <label>
           Период с

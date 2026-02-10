@@ -133,7 +133,11 @@ export default function SendMessage() {
       setAttachmentUrl('');
       setAttachmentName('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка отправки');
+      const msg = err instanceof Error ? err.message : 'Ошибка отправки';
+      const isNetwork = msg === 'Failed to fetch' || (err instanceof TypeError && (err as Error).message?.includes('fetch'));
+      setError(isNetwork
+        ? 'Сервер недоступен. Запустите backend (порт 3001): дважды щёлкните «Запустить всё.bat» в папке проекта и дождитесь запуска.'
+        : msg);
       console.error('Send message error:', err);
     } finally {
       setLoading(false);

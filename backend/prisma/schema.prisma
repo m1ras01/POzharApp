@@ -20,9 +20,10 @@ model User {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt     @map("updated_at")
 
-  messagesSent     Message[] @relation("SentMessages")
-  messagesReceived Message[] @relation("ReceivedMessages")
-  actionLogs        ActionLog[]
+  messagesSent       Message[] @relation("SentMessages")
+  messagesReceived   Message[] @relation("ReceivedMessages")
+  messagesRepliedTo  Message[] @relation("AdminReplies")
+  actionLogs         ActionLog[]
   assignedNotifications Notification[] @relation("AssignedTo")
 }
 
@@ -44,17 +45,21 @@ model Notification {
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  senderId       String   @map("sender_id")
-  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  recipientId    String?  @map("recipient_id")
-  recipient      User?    @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
-  workObject     String?  @map("work_object") // объект для выполнения работ
-  subject        String?
-  body           String
-  attachmentUrl  String?  @map("attachment_url")
-  readAt         DateTime? @map("read_at")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id                String    @id @default(cuid())
+  senderId          String    @map("sender_id")
+  sender            User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId       String?   @map("recipient_id")
+  recipient         User?     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  workObject        String?   @map("work_object") // объект для выполнения работ
+  subject           String?
+  body              String
+  attachmentUrl     String?   @map("attachment_url")
+  readAt            DateTime? @map("read_at")
+  adminReply        String?   @map("admin_reply")       // ответ администратора оператору
+  adminRepliedAt    DateTime? @map("admin_replied_at")
+  adminRepliedById  String?   @map("admin_replied_by_id")
+  adminRepliedBy    User?     @relation("AdminReplies", fields: [adminRepliedById], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now()) @map("created_at")
 }
 
 model DeliveryLog {

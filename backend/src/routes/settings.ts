@@ -32,6 +32,25 @@ router.patch('/notifications', async (req, res) => {
   res.json(u);
 });
 
+// Ссылка на бота (для всех ролей — оператор может открыть бота)
+router.get('/telegram/bot-info', async (_req, res) => {
+  let botUsername = '';
+  let available = false;
+  try {
+    const bot = await import('../telegram/bot.js');
+    botUsername = await bot.getTelegramBotUsername();
+    available = bot.isTelegramEnabled();
+  } catch {
+    // бот не настроен
+  }
+  const clean = botUsername.replace(/^@/, '');
+  res.json({
+    available,
+    botUsername: clean ? `@${clean}` : null,
+    botLink: clean ? `https://t.me/${clean}` : null,
+  });
+});
+
 // Запрос кода привязки Telegram
 router.post('/telegram/request-code', async (req, res) => {
   const user = (req as any).user;

@@ -76,14 +76,16 @@ export default function Users() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Ошибка создания');
+        throw new Error(data.error ?? (res.status === 401 ? 'Войдите снова' : 'Ошибка создания'));
       }
       closeModal();
       load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка');
+      const msg = err instanceof Error ? err.message : 'Ошибка создания';
+      const isNetwork = msg === 'Failed to fetch' || msg.includes('fetch');
+      setError(isNetwork ? 'Сервер недоступен. Запустите backend (Запустить всё.bat).' : msg);
     } finally {
       setSaving(false);
     }
@@ -102,14 +104,15 @@ export default function Users() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? 'Ошибка сохранения');
       }
       closeModal();
       load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка');
+      const msg = err instanceof Error ? err.message : 'Ошибка сохранения';
+      setError(msg === 'Failed to fetch' ? 'Сервер недоступен. Запустите backend.' : msg);
     } finally {
       setSaving(false);
     }

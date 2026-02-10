@@ -18,6 +18,7 @@ export default function NotificationDetail() {
   const { user } = useAuth();
   const [n, setN] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState('');
   const [status, setStatus] = useState('');
   const [department, setDepartment] = useState('');
   const [comments, setComments] = useState('');
@@ -42,6 +43,7 @@ export default function NotificationDetail() {
 
   const handleSave = async () => {
     if (!id) return;
+    setSaveError('');
     setSaving(true);
     try {
       const res = await apiFetch(`/api/notifications/${id}`, {
@@ -49,7 +51,15 @@ export default function NotificationDetail() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, department: department || null, comments }),
       });
-      if (res.ok) setN(await res.json());
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setN(data);
+      } else {
+        setSaveError(data.error ?? 'Ошибка сохранения');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Ошибка';
+      setSaveError(msg === 'Failed to fetch' ? 'Сервер недоступен. Запустите backend.' : msg);
     } finally {
       setSaving(false);
     }
@@ -121,6 +131,7 @@ export default function NotificationDetail() {
                 placeholder="Комментарии..."
               />
             </label>
+            {saveError && <p className={styles.error}>{saveError}</p>}
             <button onClick={handleSave} disabled={saving}>
               {saving ? 'Сохранение…' : 'Сохранить'}
             </button>

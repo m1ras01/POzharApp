@@ -90,6 +90,29 @@ export async function notifyTelegramNewMessage(
   }
 }
 
+/** Уведомить оператора в Telegram об ответе администратора на его заявку. */
+export async function notifyTelegramMessageReply(
+  replyText: string,
+  operatorTelegramId: string,
+  adminName: string,
+  subject?: string | null
+): Promise<void> {
+  let sendTelegramMessage: (chatId: string, text: string) => Promise<boolean>;
+  try {
+    const bot = await import('../telegram/bot.js');
+    sendTelegramMessage = bot.sendTelegramMessage;
+  } catch {
+    return;
+  }
+  const subjectLine = subject ? `По заявке «${escapeHtml(subject)}»\n\n` : '';
+  const text =
+    `✅ <b>Ответ администратора (FireNotify)</b>\n\n` +
+    subjectLine +
+    `${escapeHtml(replyText)}\n\n` +
+    `— ${escapeHtml(adminName)}`;
+  await sendTelegramMessage(operatorTelegramId, text);
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')

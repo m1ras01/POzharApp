@@ -70,6 +70,22 @@
   color: var(--muted);
 }
 
+.botLink {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #0088cc;
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.botLink:hover {
+  background: #006699;
+  color: #fff;
+}
+
 .secondaryBtn {
   padding: 0.5rem 1rem;
   background: transparent;

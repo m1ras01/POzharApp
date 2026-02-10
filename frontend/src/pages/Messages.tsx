@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../context/AuthContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './Messages.module.css';
@@ -11,6 +12,9 @@ type Message = {
   attachmentUrl?: string | null;
   readAt: string | null;
   createdAt: string;
+  adminReply?: string | null;
+  adminRepliedAt?: string | null;
+  adminRepliedBy?: { id: string; login: string; name: string | null } | null;
   sender?: { id: string; login: string; name: string | null };
   recipient?: { id: string; login: string; name: string | null };
 };
@@ -23,7 +27,18 @@ export default function Messages() {
   const [selected, setSelected] = useState<Message | null>(null);
   const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState<string | null>(null);
   const attachmentBlobUrlRef = useRef<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   const isAdmin = user?.role === 'ADMIN';
+  const quickReplies = ['Ваше сообщение проверили.', 'Спец отправляется.', 'Посмотрим.', 'Принято в работу.'];
+  const [botLink, setBotLink] = useState<string | null>(null);
+  useEffect(() => {
+    if (isAdmin) return;
+    apiFetch('/api/settings/telegram/bot-info')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data?.botLink && setBotLink(data.botLink))
+      .catch(() => {});
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!selected?.attachmentUrl) {
@@ -78,8 +93,16 @@ export default function Messages() {
     load();
   }, []);
 
+  // Для админа: раз в 30 сек обновляем список, чтобы новые заявки из Telegram появлялись в интерфейсе
+  useEffect(() => {
+    if (!isAdmin) return;
+    const t = setInterval(load, 30000);
+    return () => clearInterval(t);
+  }, [isAdmin]);
+
   const openMessage = (msg: Message) => {
     setSelected(msg);
+    setReplyText('');
     const canMarkRead =
       !msg.readAt &&
       (msg.recipient?.id === user?.id || (msg.recipient == null && user?.role === 'ADMIN'));
@@ -88,18 +111,50 @@ export default function Messages() {
     }
   };
 
+  const sendReply = () => {
+    if (!selected || !replyText.trim() || sendingReply) return;
+    setSendingReply(true);
+    apiFetch(`/api/messages/${selected.id}/reply`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reply: replyText.trim() }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Ошибка'))))
+      .then((updated: Message) => {
+        setSelected(updated);
+        setReplyText('');
+        load();
+      })
+      .catch(() => {})
+      .finally(() => setSendingReply(false));
+  };
+
   if (loading) return <p className={styles.loading}>Загрузка…</p>;
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>
-        {isAdmin ? 'Входящие заявки (проверка)' : 'Заявки'}
-      </h1>
+      <div className={styles.titleRow}>
+        <h1 className={styles.title}>
+          {isAdmin ? 'Входящие заявки (проверка)' : 'Заявки'}
+        </h1>
+        <button type="button" onClick={() => load()} disabled={loading} className={styles.refreshBtn}>
+          Обновить
+        </button>
+      </div>
       <p className={styles.hint}>
         {isAdmin
-          ? 'Заявки от операторов. При новой заявке вы получите уведомление в Telegram в любое время суток — не нужно постоянно заходить на сайт.'
-          : 'Отправленные и полученные заявки.'}
+          ? 'Заявки от операторов приходят в блок «Входящие» ниже. Уведомление о новой заявке приходит в Telegram; здесь нажмите «Обновить», чтобы увидеть её в списке.'
+          : 'Отправленные и полученные заявки. Ответы администратора приходят здесь и в Telegram, если привязать бота в Настройках.'}
       </p>
+      {!isAdmin && botLink && (
+        <p className={styles.telegramHint}>
+          <a href={botLink} target="_blank" rel="noopener noreferrer" className={styles.telegramLink}>
+            Открыть бота в Telegram
+          </a>
+          {' — чтобы получать ответы админа в мессенджере. '}
+          <Link to="/settings" className={styles.telegramLink}>Привязать в Настройках</Link>
+        </p>
+      )}
 
       <section className={styles.section}>
         <h2>Входящие</h2>
@@ -144,6 +199,51 @@ export default function Messages() {
             </p>
           )}
           <div className={styles.body}>{selected.body}</div>
+          {selected.adminReply && (
+            <div className={styles.adminReply}>
+              <strong>Ответ администратора</strong>
+              {selected.adminRepliedAt && (
+                <span className={styles.adminReplyDate}>
+                  {' '}
+                  {new Date(selected.adminRepliedAt).toLocaleString('ru')}
+                  {selected.adminRepliedBy && ` — ${selected.adminRepliedBy.name ?? selected.adminRepliedBy.login}`}
+                </span>
+              )}
+              <p className={styles.adminReplyText}>{selected.adminReply}</p>
+            </div>
+          )}
+          {isAdmin && !selected.adminReply && (
+            <div className={styles.replyForm}>
+              <label className={styles.replyLabel}>Ответить оператору (фидбек придёт в интерфейс и в Telegram):</label>
+              <div className={styles.quickReplies}>
+                {quickReplies.map((text) => (
+                  <button
+                    key={text}
+                    type="button"
+                    className={styles.quickReplyBtn}
+                    onClick={() => setReplyText(text)}
+                  >
+                    {text}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                className={styles.replyTextarea}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Или введите свой ответ..."
+                rows={3}
+              />
+              <button
+                type="button"
+                className={styles.sendReplyBtn}
+                onClick={sendReply}
+                disabled={!replyText.trim() || sendingReply}
+              >
+                {sendingReply ? 'Отправка…' : 'Отправить ответ'}
+              </button>
+            </div>
+          )}
           {selected.attachmentUrl && (
             <div className={styles.attachment}>
               <span className={styles.attachmentLabel}>Вложение:</span>
@@ -180,6 +280,7 @@ export default function Messages() {
                 className={selected?.id === msg.id ? styles.selected : ''}
                 onClick={() => openMessage(msg)}
               >
+                {msg.adminReply && <span className={styles.hasReply}>✓ Ответ</span>}
                 <span className={styles.recipient}>
                   Кому: {msg.recipient ? (msg.recipient.name ?? msg.recipient.login) : 'Всем админам'}
                 </span>

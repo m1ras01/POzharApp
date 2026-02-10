@@ -23,6 +23,7 @@ if errorlevel 1 (
 ) else (
   echo Gotovo.
 )
+call npx prisma generate
 cd ..
 echo.
 
