@@ -7,6 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "email:ingest": "tsx src/email/ingest.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
@@ -18,7 +19,9 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "imapflow": "^1.0.156",
     "jsonwebtoken": "^9.0.2",
+    "mailparser": "^3.6.5",
     "multer": "^1.4.5-lts.1",
     "@prisma/client": "^5.22.0"
   },

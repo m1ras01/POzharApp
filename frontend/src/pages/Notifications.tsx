@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch, useAuth } from '../context/AuthContext';
 import { DEPARTMENTS } from '../data/departments';
+import { PROBLEM_TYPES } from '../data/problemTypes';
 import styles from './Notifications.module.css';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -25,9 +26,14 @@ export default function Notifications() {
   const [createAddress, setCreateAddress] = useState('');
   const [createDepartment, setCreateDepartment] = useState('');
   const [createDescription, setCreateDescription] = useState('');
+  const [createProblemType, setCreateProblemType] = useState('');
   const [createError, setCreateError] = useState('');
   const [creating, setCreating] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState('');
+  const [authorFilter, setAuthorFilter] = useState('');
+  const [problemTypeFilter, setProblemTypeFilter] = useState('');
+  const [addressFilter, setAddressFilter] = useState('');
+  const [authors, setAuthors] = useState<{ id: string; login: string; name: string | null }[]>([]);
 
   const canCreate = user?.role === 'ADMIN' || user?.role === 'OPERATOR';
 
@@ -37,6 +43,10 @@ export default function Notifications() {
     if (status) params.set('status', status);
     if (from) params.set('from', from);
     if (to) params.set('to', to);
+    if (departmentFilter) params.set('department', departmentFilter);
+    if (authorFilter) params.set('authorId', authorFilter);
+    if (problemTypeFilter) params.set('problemType', problemTypeFilter);
+    if (addressFilter.trim()) params.set('address', addressFilter.trim());
     if (search.trim()) params.set('search', search.trim());
     apiFetch(`/api/notifications?${params}`)
       .then((r) => (r.ok ? r.json() : Promise.resolve([])))
@@ -46,8 +56,15 @@ export default function Notifications() {
   };
 
   useEffect(() => {
+    apiFetch('/api/notifications/authors')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setAuthors(Array.isArray(data) ? data : []))
+      .catch(() => setAuthors([]));
+  }, []);
+
+  useEffect(() => {
     load();
-  }, [status, from, to, departmentFilter]);
+  }, [status, from, to, departmentFilter, authorFilter, problemTypeFilter, addressFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +88,7 @@ export default function Notifications() {
           address: createAddress.trim(),
           department: createDepartment.trim() || undefined,
           description: createDescription.trim() || undefined,
+          problemType: createProblemType.trim() || undefined,
         }),
       });
       if (!res.ok) {
@@ -82,6 +100,7 @@ export default function Notifications() {
       setCreateAddress('');
       setCreateDepartment('');
       setCreateDescription('');
+      setCreateProblemType('');
       load();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Ошибка создания';
@@ -95,7 +114,7 @@ export default function Notifications() {
     <div className={styles.page}>
       <h1 className={styles.title}>Уведомления</h1>
       <p className={styles.intro}>
-        <strong>Что такое уведомление?</strong> Это запись о пожарном сигнале: откуда пришёл сигнал (источник), адрес объекта и при необходимости описание. Уведомление создаёт оператор или администратор. После создания все админы с включённым Telegram получают сообщение в бота. Статус можно менять: Новое → В обработке → Проверено / Ложное / Закрыто. Ответственного назначает администратор.
+        <strong>Обращения (заявки).</strong> Распределение по зоне ответственности: назначение ответственного и структурное подразделение. Поиск по автору, местонахождению объекта, структуре, типу проблемы и статусу. Редактирование карточки и комментарии — на странице заявки.
       </p>
       {canCreate && (
         <div className={styles.createBlock}>
@@ -128,7 +147,7 @@ export default function Notifications() {
                   />
                 </label>
                 <label>
-                  Отделение
+                  Структурное подразделение
                   <select
                     value={createDepartment}
                     onChange={(e) => setCreateDepartment(e.target.value)}
@@ -136,6 +155,18 @@ export default function Notifications() {
                     <option value="">— не выбрано —</option>
                     {DEPARTMENTS.map((d) => (
                       <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Тип проблемы
+                  <select
+                    value={createProblemType}
+                    onChange={(e) => setCreateProblemType(e.target.value)}
+                  >
+                    <option value="">— не выбрано —</option>
+                    {PROBLEM_TYPES.map((p) => (
+                      <option key={p} value={p}>{p}</option>
                     ))}
                   </select>
                 </label>
@@ -179,11 +210,29 @@ export default function Notifications() {
           ))}
         </select>
         <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
-          <option value="">Все отделения</option>
+          <option value="">Все подразделения</option>
           {DEPARTMENTS.map((d) => (
             <option key={d} value={d}>{d}</option>
           ))}
         </select>
+        <select value={authorFilter} onChange={(e) => setAuthorFilter(e.target.value)}>
+          <option value="">Все авторы</option>
+          {authors.map((a) => (
+            <option key={a.id} value={a.id}>{a.name || a.login}</option>
+          ))}
+        </select>
+        <select value={problemTypeFilter} onChange={(e) => setProblemTypeFilter(e.target.value)}>
+          <option value="">Все типы проблемы</option>
+          {PROBLEM_TYPES.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+        <input
+          type="text"
+          value={addressFilter}
+          onChange={(e) => setAddressFilter(e.target.value)}
+          placeholder="Местонахождение объекта"
+        />
         <label>
           С
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -202,12 +251,15 @@ export default function Notifications() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Дата и время</th>
+                <th>Дата</th>
                 <th>Источник</th>
-                <th>Адрес</th>
-                <th>Отделение</th>
+                <th>Адрес / местонахождение</th>
+                <th>Подразделение</th>
+                <th>Тип проблемы</th>
                 <th>Статус</th>
+                <th>Автор</th>
                 <th>Ответственный</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -217,11 +269,13 @@ export default function Notifications() {
                   <td>{n.source}</td>
                   <td>{n.address}</td>
                   <td>{n.department ?? '—'}</td>
+                  <td>{n.problemType ?? '—'}</td>
                   <td>
                     <span className={styles.status} data-status={n.status}>
                       {STATUS_LABELS[n.status] ?? n.status}
                     </span>
                   </td>
+                  <td>{n.createdBy?.name ?? n.createdBy?.login ?? '—'}</td>
                   <td>{n.assignedTo?.name ?? n.assignedTo?.login ?? '—'}</td>
                   <td>
                     <Link to={`/notifications/${n.id}`}>Подробнее</Link>

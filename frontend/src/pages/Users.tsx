@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { apiFetch } from '../context/AuthContext';
+import { apiFetch, useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import styles from './Users.module.css';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -9,6 +10,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function Users() {
+  const { user } = useAuth();
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
@@ -25,16 +27,35 @@ export default function Users() {
 
   const load = () => {
     setLoading(true);
+    setError('');
     apiFetch('/api/users')
-      .then((r) => r.json())
-      .then(setList)
-      .catch(() => setList([]))
+      .then((r) => {
+        if (!r.ok) return r.json().then((d) => ({ err: d?.error ?? 'Ошибка загрузки' }));
+        return r.json().then((data) => (Array.isArray(data) ? data : []));
+      })
+      .then((data: any) => {
+        if (data?.err) {
+          setError(data.err);
+          setList([]);
+        } else {
+          setList(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch(() => {
+        setList([]);
+        setError('Сервер недоступен');
+      })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (user?.role === 'ADMIN') load();
+  }, [user?.role]);
+
+  if (!user) return null;
+  if (user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
 
   const openCreate = () => {
     setForm({

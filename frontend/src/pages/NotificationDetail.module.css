@@ -90,6 +90,20 @@
   color: var(--text);
 }
 
+.editTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.edit input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
 .edit button {
   align-self: flex-start;
   padding: 0.5rem 1rem;
@@ -98,6 +112,93 @@
   border-radius: var(--radius);
   color: #fff;
   font-weight: 500;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.tabs button.tabActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.sectionTitle {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.commentList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.commentList li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.commentList li:last-child {
+  border-bottom: none;
+}
+
+.commentList p {
+  margin: 0.35rem 0 0;
+}
+
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.commentForm textarea {
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.commentForm button {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+}
+
+.changelogList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.changelogList li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
 }
 
 .actions {

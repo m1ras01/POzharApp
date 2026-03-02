@@ -25,23 +25,39 @@ model User {
   messagesRepliedTo  Message[] @relation("AdminReplies")
   actionLogs         ActionLog[]
   assignedNotifications Notification[] @relation("AssignedTo")
+  createdNotifications   Notification[] @relation("CreatedNotifications")
+  notificationComments   NotificationComment[]
 }
 
 model Notification {
-  id          String   @id @default(cuid())
-  source      String   // источник сигнала
-  address     String   // адрес объекта
-  department  String?  // отделение
-  status      String   @default("NEW") // NEW, IN_PROGRESS, VERIFIED, FALSE_ALARM, CLOSED
-  description String?
-  comments    String?
-  assignedToId String?           @map("assigned_to_id")
-  assignedTo   User?             @relation("AssignedTo", fields: [assignedToId], references: [id])
-  createdAt   DateTime           @default(now()) @map("created_at")
-  updatedAt   DateTime           @updatedAt     @map("updated_at")
-  closedAt    DateTime?          @map("closed_at")
+  id            String   @id @default(cuid())
+  source        String   // источник сигнала
+  address       String   // адрес объекта (местонахождение)
+  department    String?  // структурное подразделение
+  problemType   String?  @map("problem_type")   // тип проблемы / классификация
+  status        String   @default("NEW")        // NEW, IN_PROGRESS, VERIFIED, FALSE_ALARM, CLOSED
+  description   String?
+  comments      String?  // общее поле комментариев (оставлено для совместимости)
+  createdById   String?  @map("created_by_id")  // автор обращения
+  createdBy     User?    @relation("CreatedNotifications", fields: [createdById], references: [id], onDelete: SetNull)
+  assignedToId  String?  @map("assigned_to_id")  // ответственный по зоне ответственности
+  assignedTo    User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt     @map("updated_at")
+  closedAt      DateTime? @map("closed_at")
 
   deliveries DeliveryLog[]
+  commentThread NotificationComment[]
+}
+
+model NotificationComment {
+  id             String   @id @default(cuid())
+  notificationId String   @map("notification_id")
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text           String
+  createdAt      DateTime @default(now()) @map("created_at")
 }
 
 model Message {

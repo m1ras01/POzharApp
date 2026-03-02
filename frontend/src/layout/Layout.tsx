@@ -3,10 +3,17 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './Layout.module.css';
 
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Администратор',
+  OPERATOR: 'Оператор',
+  OBSERVER: 'Наблюдатель (только просмотр)',
+};
+
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'ADMIN';
+  const isObserver = user?.role === 'OBSERVER';
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -48,12 +55,16 @@ export default function Layout() {
           <NavLink to="/notifications" className={({ isActive }) => (isActive ? styles.active : '')}>
             Уведомления
           </NavLink>
-          <NavLink to="/send-message" className={({ isActive }) => (isActive ? styles.active : '')}>
-            Отправить заявку
-          </NavLink>
-          <NavLink to="/questionnaires" className={({ isActive }) => (isActive ? styles.active : '')}>
-            Опросники
-          </NavLink>
+          {!isObserver && (
+            <NavLink to="/send-message" className={({ isActive }) => (isActive ? styles.active : '')}>
+              Отправить заявку
+            </NavLink>
+          )}
+          {!isObserver && (
+            <NavLink to="/questionnaires" className={({ isActive }) => (isActive ? styles.active : '')}>
+              Опросники
+            </NavLink>
+          )}
           <NavLink to="/messages" className={({ isActive }) => (isActive ? styles.active : '')}>
             {isAdmin ? 'Заявки (проверка)' : 'Заявки'}
           </NavLink>
@@ -74,7 +85,7 @@ export default function Layout() {
         </nav>
         <div className={styles.user}>
           <span>{user?.name ?? user?.login}</span>
-          <span className={styles.role}>{user?.role}</span>
+          <span className={styles.role} title="Разграничение прав доступа">{ROLE_LABELS[user?.role ?? ''] ?? user?.role}</span>
           <button type="button" onClick={handleLogout} className={styles.logout}>
             Выйти
           </button>
