@@ -78,5 +78,13 @@ export function apiFetch(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem(AUTH_STORAGE_KEY + '_token');
   const headers = new Headers(options.headers || {});
   if (token) headers.set('Authorization', `Bearer ${token}`);
-  return fetch(url, { ...options, headers });
+  return fetch(url, { ...options, headers }).then((res) => {
+    if (res.status === 401) {
+      localStorage.removeItem(AUTH_STORAGE_KEY + '_token');
+      localStorage.removeItem(AUTH_STORAGE_KEY + '_user');
+      window.location.href = '/login';
+      throw new Error('Сессия истекла. Войдите снова.');
+    }
+    return res;
+  });
 }
