@@ -29,21 +29,18 @@ export default function Users() {
     setLoading(true);
     setError('');
     apiFetch('/api/users')
-      .then((r) => {
-        if (!r.ok) return r.json().then((d) => ({ err: d?.error ?? 'Ошибка загрузки' }));
-        return r.json().then((data) => (Array.isArray(data) ? data : []));
-      })
-      .then((data: any) => {
-        if (data?.err) {
-          setError(data.err);
-          setList([]);
-        } else {
-          setList(Array.isArray(data) ? data : []);
+      .then(async (r) => {
+        if (!r.ok) {
+          const d = await r.json().catch(() => ({}));
+          throw new Error(d?.error ?? 'Ошибка загрузки');
         }
+        const data = await r.json().catch(() => []);
+        return Array.isArray(data) ? data : [];
       })
-      .catch(() => {
+      .then((data) => setList(data))
+      .catch((e: unknown) => {
         setList([]);
-        setError('Сервер недоступен');
+        setError(e instanceof Error ? e.message : 'Сервер недоступен');
       })
       .finally(() => setLoading(false));
   };
